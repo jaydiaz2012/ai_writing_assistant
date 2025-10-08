@@ -111,7 +111,7 @@ Step 9: Focus on clarity. Your message should be easy to read and understand wit
             try:
                 chat = openai.ChatCompletion.create(model="gpt-4.1-2025-04-14", messages=struct)
                 response = chat.choices[0].message.content
-                st.success("Here's what William Shakespeare says:")
+                st.success("Here's the summary of your topic:")
                 st.write(response)
             except Exception as e:
                 st.error(f"An error occurred while getting the response: {str(e)}")
