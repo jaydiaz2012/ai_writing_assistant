@@ -21,16 +21,18 @@ from bs4 import BeautifulSoup
 
 warnings.filterwarnings("ignore")
 
+st.set_page_config(page_title="The Writing Bot: Ask Me to Write Anything!", page_icon="✍🏻", layout="wide")
 
-st.set_page_config(page_title="News Summarizer Tool", page_icon="", layout="wide")
-
-with st.sidebar :
-    #st.image('images/White_AI Republic.png')
+with st.sidebar:
+    st.image('images/logo1.png')
+    st.image('images/logo0.png')
+    
     openai.api_key = st.text_input('Enter OpenAI API token:', type='password')
-    if not (openai.api_key.startswith('sk-') and len(openai.api_key)==164):
+    if not (openai.api_key.startswith('sk-') and len(openai.api_key) == 164):
         st.warning('Please enter your OpenAI API token!', icon='⚠️')
     else:
-        st.success('Proceed to entering your prompt message!', icon='👉')
+        st.success('Proceed to ask me your topic for writing!', icon='👉')
+
     with st.container() :
         l, m, r = st.columns((1, 3, 1))
         with l : st.empty()
@@ -38,93 +40,81 @@ with st.sidebar :
         with r : st.empty()
 
     options = option_menu(
-        "Dashboard", 
-        ["Home", "About Us", "Model"],
-        icons = ['book', 'globe', 'tools'],
-        menu_icon = "book", 
-        default_index = 0,
-        styles = {
-            "icon" : {"color" : "#dec960", "font-size" : "20px"},
-            "nav-link" : {"font-size" : "17px", "text-align" : "left", "margin" : "5px", "--hover-color" : "#262730"},
-            "nav-link-selected" : {"background-color" : "#262730"}          
-        })
-
+        "Dashboard",
+        ["Home", "About Me", "Ask Me To Write"],
+        icons=['book', 'info-circle', 'question-circle'],
+        menu_icon="cast",
+        default_index=0,
+        styles={
+            "icon": {"color": "#dec960", "font-size": "20px"},
+            "nav-link": {"font-size": "17px", "text-align": "left", "margin": "5px", "--hover-color": "#262730"},
+            "nav-link-selected": {"background-color": "#262730"}
+        }
+    )
 
 if 'messages' not in st.session_state:
     st.session_state.messages = []
 
-if 'chat_session' not in st.session_state:
-    st.session_state.chat_session = None  # Placeholder for your chat session initialization
-
 # Options : Home
-if options == "Home" :
+if options == "Home":
+    st.title('The Writer Bot')
+    st.markdown("<p style='color:red; font-weight:bold;'>Note: You need to enter your OpenAI API token to use this tool.</p>", unsafe_allow_html=True)
+    st.write("Welcome to the Writer Bot, where you can ask me to write anything you wish!")
+    st.write("## How It Works")
+    st.write("Simply type in your topic, and let me write the topic for you.")
 
-    st.title("Welcome to the News summarizer!")
-    st.write("State any news from a credible website and the 'model' tool below will summarize it to avoid wasting time")
-   
-elif options == "About Us" :
-    #st.image("images/jay.jpg")
-    st.title("About Me")
-    st.write("Hi, I'm Jay. I am aspiring to be an AI Engineer.")
+elif options == "About Me":
+    st.title('About Me')
+    st.subheader(".")
+    st.write("# Meet ")
+    st.markdown(".")
+    st.write("\n")
 
-# Options : Model
-elif options == "Model" :
-    st.title("News Summarizer Tool")
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        News_Article = st.text_input("Enter News Article URL", placeholder="https://example.com/article/")
-        submit_button = st.button("Generate Summary")
-        
-    if submit_button:
-        with st.spinner("Generating Summary"):
-             try:
-                 response = requests.get(News_Article)
-                 soup = BeautifulSoup(response.content, 'html.parser')
+elif options == "Ask Me To Write":
+    st.title('Ask Me!')
+    user_question = st.text_input("What's your burning topic?")
 
-                 paragraphs = soup.find_all('p')
-                 article_text = ' '.join([p.get_text() for p in paragraphs])
-                 
-                 System_Prompt = """You are an expert news summarizer, trained to create clear, concise, and informative summaries of news articles. Your goal is to present the most essential information in a structured, easy-to-digest format. Follow these steps:
+    if st.button("Submit"):
+        if user_question:
+            System_Prompt = """ Act like a professional content writer and communication strategist. Your task is to write with a natural, human-like tone that avoids the usual pitfalls of AI-generated content.
+The goal is to produce clear, simple, and authentic writing that resonates with real people. Your responses should feel like they were written by a thoughtful and concise human writer.
+            
+Instructions: Deliver meticulously accurate writing with precision and a touch of flair. Dive deep into explanations whenever possible, sprinkling in elaborate analogies, pop culture references, or comparisons to well-known scientific phenomena. Do not hesitate to point out inaccuracies in questions, and gently (or not-so-gently) correct any misconceptions. Your love of facts and need for clarity is paramount. Inject your trademark wit, enthusiasm, and a dash of haughtiness; make answers memorable and fun without losing sight of accuracy.
 
-Step 1: Analyze the Article
-Read Thoroughly: Understand the article’s overall context, main points, and supporting information.
-Focus on the 5Ws and How: Identify the Who, What, When, Where, Why, and How. Prioritize the central event or issue, along with key people, organizations, dates, and locations.
+Context: Users come to you with a wide range of topic. Some users may be beginners seeking simple explanations, while others may be more advanced learners aiming to discuss intricate literary concepts and devices. Tailor responses to each user's level with varying degrees of detail, but make sure every answer is intelligent and accurate.
 
-Step 2: Identify Key Elements
-Main Event or Topic: Define the article's core event, development, or issue.
-Context: Establish background information or circumstances relevant to the main event.
-Key Figures: Note important individuals, groups, or organizations involved.
-Quotes and Evidence: Select one or two significant quotes or pieces of evidence that reinforce the article’s message.
-Future Implications: Include any possible outcomes, future actions, or developments connected to the event.
+Constraints: Stay focused on topic being asked. Avoid discussing topics outside what is being asked. Keep explanations thorough yet focused, without digressing too far from the user’s initial question (unless you simply must point out a fascinating tangent).
 
-Step 3: Structure the Summary
-Organize the summary concisely, following this format:
-Headline: Craft a short, compelling headline (5-10 words) summarizing the article’s essence.
-Lead (1-2 sentences): Introduce the main event or topic, covering the ‘What’ and ‘Who.’
-Why it Matters (1-2 sentences): Explain the event's significance or impact.
-Details (2-3 sentences): Provide additional context, including evidence, quotes, and relevant facts such as ‘When’ and ‘Where.’
-Zoom In (1-2 sentences): Highlight a specific perspective or unique angle, like a quote from an official.
-Flashback (1 sentence): Add a quick historical reference to give context.
-Reality Check (1 sentence): Present any contrasting or balancing information if relevant.
-Conclusion (1 sentence): Conclude with potential future actions, outcomes, or implications.
+Follow these detailed step-by-step guidelines:
+Step 1: Use plain and simple language. Avoid long or complex sentences. Opt for short, clear statements.
+- Example: Instead of "We should leverage this opportunity," write "Let's use this chance."
+Step 2: Avoid AI giveaway phrases and generic clichés such as "let's dive in," "game-changing," or "unleash potential." Replace them with straightforward language.
+- Example: Replace "Let's dive into this amazing tool" with "Here’s how it works."
+Step 3: Be direct and concise. Eliminate filler words and unnecessary phrases. Focus on getting to the point.
+- Example: Say "We should meet tomorrow," instead of "I think it would be best if we could possibly try to meet."
+Step 4: Maintain a natural tone. Write like you speak. It’s okay to start sentences with “and” or “but.” Make it feel conversational, not robotic.
+- Example: “And that’s why it matters.”
+Step 5: Avoid marketing buzzwords, hype, and overpromises. Use neutral, honest descriptions.
+- Avoid: "This revolutionary app will change your life."
+- Use instead: "This app can help you stay organized."
+Step 6: Keep it real. Be honest. Don’t try to fake friendliness or exaggerate.
+- Example: “I don’t think that’s the best idea.”
+Step 7: Simplify grammar. Don’t worry about perfect grammar if it disrupts natural flow. Casual expressions are okay.
+- Example: “i guess we can try that.”
+Step 8: Remove fluff. Avoid using unnecessary adjectives or adverbs. Stick to the facts or your core message.
+- Example: Say “We finished the task,” not “We quickly and efficiently completed the important task.”
+Step 9: Focus on clarity. Your message should be easy to read and understand without ambiguity. 
 
-Step 4: Maintain Objectivity and Neutrality
-Ensure the summary is factual, neutral, and free from bias or personal opinions. Write in a professional and accessible tone suitable for all readers.
+"""
+            struct = [{'role': 'system', 'content': System_Prompt}]
+            struct.append({"role": "user", "content": user_question})
 
-Step 5: Format and Review
-Double-check for clarity, logical flow, and accuracy. Keep sections brief but ensure they include all critical points. Present the final summary in the format outlined above."""
-
-                # Set up the chat structure for OpenAI API
-                 user_message = f"Please summarize the following news article: {article_text}"
-                 struct = [{'role': 'system', 'content': System_Prompt}]
-                 struct.append({"role": "user", "content": user_message})
-                 chat = openai.ChatCompletion.create(model="gpt-4o-mini", messages=struct)
-                 summary = chat.choices[0].message.content
-                 struct.append({"role": "assistant", "content": summary})
-
-                 st.success("Summary generated successfully!")
-                 
-                 st.subheader("Article Summary:")
-                 st.write(summary)
-             except Exception as e:
-                 st.error(f"An error occurred: {str(e)}")
+            try:
+                chat = openai.ChatCompletion.create(model="gpt-4.1-2025-04-14", messages=struct)
+                response = chat.choices[0].message.content
+                st.success("Here's what William Shakespeare says:")
+                st.write(response)
+            except Exception as e:
+                st.error(f"An error occurred while getting the response: {str(e)}")
+        else:
+            st.warning("Please enter a question before submitting!")
