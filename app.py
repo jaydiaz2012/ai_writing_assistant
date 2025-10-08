@@ -24,8 +24,7 @@ warnings.filterwarnings("ignore")
 st.set_page_config(page_title="The Writing Bot: Ask Me to Write Anything!", page_icon="✍🏻", layout="wide")
 
 with st.sidebar:
-    st.image('images/logo1.png')
-    st.image('images/logo0.png')
+    st.image('images/logo0.jpg')
     
     openai.api_key = st.text_input('Enter OpenAI API token:', type='password')
     if not (openai.api_key.startswith('sk-') and len(openai.api_key) == 164):
