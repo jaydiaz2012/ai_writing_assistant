@@ -6,7 +6,7 @@ faiss-cpu
 plotly
 openpyxl
 langchain
-langchain_openai
+langchain-openai
 langchain_community
 scipy
 scikit-learn
