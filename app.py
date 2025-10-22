@@ -1,4 +1,3 @@
-pip install --upgrade pip
 import os
 import openai
 import numpy as np
