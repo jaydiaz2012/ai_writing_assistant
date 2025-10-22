@@ -106,7 +106,7 @@ Step 9: Focus on clarity. Your message should be easy to read and understand wit
             struct.append({"role": "user", "content": user_question})
 
             try:
-                chat = openai.ChatCompletion.create(model="gpt-4.1-2025-04-14", messages=struct)
+                chat = client.chat.completions.create(model="gpt-4.1-2025-04-14", messages=struct)
                 response = chat.choices[0].message.content
                 st.success("Here's the summary of your topic:")
                 st.write(response)
