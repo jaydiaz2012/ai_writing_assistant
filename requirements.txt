@@ -1,4 +1,4 @@
-openai==1.10
+openai==0.28
 streamlit==1.32.1
 pip==25.2
 streamlit_option_menu
@@ -6,9 +6,9 @@ streamlit_extras
 faiss-cpu
 plotly
 openpyxl
-langchain==0.1.11
-langchain-openai==0.0.8
-langchain_community==0.0.28
+langchain
+langchain-openai
+langchain_community
 scipy
 scikit-learn
 newspaper3k==0.2.8
