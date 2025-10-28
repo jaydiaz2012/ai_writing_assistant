@@ -131,7 +131,6 @@ if api_key and api_key.startswith("sk-"):
             "history": lambda _: st.session_state.memory.chat_memory.messages,
             "question": RunnablePassthrough()
         }
-        [
         | prompt
         | llm
         | StrOutputParser()
