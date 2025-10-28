@@ -3,11 +3,14 @@ import openai
 import numpy as np
 import pandas as pd
 import json
+from openai import OpenAI
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+from langchain.memory import ConversationBufferMemory
 from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.vectorstores import Chroma
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 import faiss
 import streamlit as st
 import warnings
@@ -18,13 +21,18 @@ from bs4 import BeautifulSoup
 
 warnings.filterwarnings("ignore")
 
-st.set_page_config(page_title="The Writing Bot: Ask Me to Write Anything!", page_icon="✍🏻", layout="wide")
+st.set_page_config(
+    page_title="The Writing Bot: Ask Me to Write Anything!", 
+    page_icon="✍🏻", 
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 with st.sidebar:
     st.image('images/logo0.jpg')
+    api_key = st.text_input("Enter OpenAI API token:", type='password')
     
-    openai.api_key = st.text_input('Enter OpenAI API token:', type='password')
-    if not (openai.api_key.startswith('sk-') and len(openai.api_key) == 164):
+    if not (api_key.startswith('sk-') and len(api_key) > 40):
         st.warning('Please enter your OpenAI API token!', icon='⚠️')
     else:
         st.success('Proceed to ask me your topic for writing!', icon='👉')
@@ -44,11 +52,14 @@ with st.sidebar:
         styles={
             "icon": {"color": "#dec960", "font-size": "20px"},
             "nav-link": {"font-size": "17px", "text-align": "left", "margin": "5px", "--hover-color": "#262730"},
-            "nav-link-selected": {"background-color": "#262730"}
-        }
+            "nav-link-selected": {"background-color": "#262730"},
+            "body": {"background-color": "#ffffff"},
+        },
     )
 
-if 'messages' not in st.session_state:
+if "memory" not in st.session_state:
+    st.session_state.memory = ConversationBufferMemory(return_messages=True)
+if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # Options : Home
@@ -102,15 +113,46 @@ Step 8: Remove fluff. Avoid using unnecessary adjectives or adverbs. Stick to th
 Step 9: Focus on clarity. Your message should be easy to read and understand without ambiguity. 
 
 """
-            struct = [{'role': 'system', 'content': System_Prompt}]
-            struct.append({"role": "user", "content": user_question})
+if api_key and api_key.startswith("sk-"):
+    llm = ChatOpenAI(
+        openai_api_key=api_key,
+        model="gpt-4o-mini",
+        temperature=0.7
+    )
 
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_prompt),
+        MessagesPlaceholder(variable_name="history"),
+        ("user", "{question}")
+    ])
+
+    chain = (
+        {
+            "history": lambda _: st.session_state.memory.chat_memory.messages,
+            "question": RunnablePassthrough()
+        }
+        [
+        | prompt
+        | llm
+        | StrOutputParser()
+    )
+
+    if st.button("Submit"):
+        if user_question.strip():
             try:
-                chat = client.chat.completions.create(model="gpt-4.1-2025-04-14", messages=struct)
-                response = chat.choices[0].message.content
-                st.success("Here's the summary of your topic:")
+                response = chain.invoke(user_question)
+                st.session_state.memory.chat_memory.add_user_message(user_question)
+                st.session_state.memory.chat_memory.add_ai_message(response)
+                st.success("Here's the answer:")
                 st.write(response)
+
+                with st.expander("View Conversation History"):
+                    for msg in st.session_state.memory.chat_memory.messages:
+                        role = "User" if msg.type == "human" else "Chatbot"
+                        st.markdown(f"**{role}:** {msg.content}")
             except Exception as e:
-                st.error(f"An error occurred while getting the response: {str(e)}")
+                st.error(f"Error: {e}")
         else:
-            st.warning("Please enter a question before submitting!")
+            st.warning("Please enter a question before submitting.")
+else:
+    st.warning("Enter your valid OpenAI API key to start chatting.")
