@@ -1,20 +1,21 @@
 import os
-import openai
+import streamlit as st
+import warnings
 import numpy as np
 import pandas as pd
 import json
-from openai import OpenAI
+from streamlit_option_menu import option_menu
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain.memory import ConversationBufferMemory
-from langchain_community.chat_models import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate
-from langchain.vectorstores import Chroma
-import faiss
-import streamlit as st
-import warnings
-from streamlit_option_menu import option_menu
+from langchain_openai import ChatOpenAI
+
+#from langchain_community.chat_models import ChatOpenAI
+#from langchain.prompts import ChatPromptTemplate
+#from langchain.vectorstores import Chroma
+#import faiss
+#import warnings
 from streamlit_extras.mention import mention
 import requests
 from bs4 import BeautifulSoup
@@ -59,9 +60,7 @@ with st.sidebar:
 
 if "memory" not in st.session_state:
     st.session_state.memory = ConversationBufferMemory(return_messages=True)
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
+    
 # Options : Home
 if options == "Home":
     st.title('The Writer Bot')
@@ -115,9 +114,9 @@ Step 9: Focus on clarity. Your message should be easy to read and understand wit
 """
 if api_key and api_key.startswith("sk-"):
     llm = ChatOpenAI(
-        openai_api_key=api_key,
         model="gpt-4o-mini",
-        temperature=0.7
+        temperature=0.7,
+        api_key=api_key
     )
 
     prompt = ChatPromptTemplate.from_messages([
