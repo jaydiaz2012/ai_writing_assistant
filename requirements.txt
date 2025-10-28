@@ -9,6 +9,7 @@ openpyxl
 langchain==0.1.11
 langchain-openai==0.0.8
 langchain_community==0.0.28
+langchain_core
 scipy
 scikit-learn
 newspaper3k==0.2.8
